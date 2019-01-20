@@ -41,9 +41,20 @@ namespace api.Controllers
 
         // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrders(RoomFilter room, PaymentFilter payment, DateFilter date,
+            StatusFilter status, DateTime start, DateTime end)
         {
+            var s = start.ToUniversalTime().AddHours(3).Date;
+            var e = end.ToUniversalTime().AddHours(3).Date;
             return await context.Orders
+                            .Where(x => status == StatusFilter.Both ?
+                                true : status == StatusFilter.Cancel ? x.Canceled : !x.Canceled)
+                            .Where(x => payment == PaymentFilter.Both ?
+                                true : payment == PaymentFilter.Card ? x.Type == PaymentType.Card : x.Type == PaymentType.Cash)
+                            .Where(x => room == RoomFilter.Both ?
+                                true : room == RoomFilter.Male ? x.Room == RoomType.Men : x.Room == RoomType.Women)
+                            .Where(x => date == DateFilter.Day ? x.Modified > s && x.Modified < s.AddDays(1) :
+                                x.Modified >= s && x.Modified <= e.AddDays(1))
                             .Include(x => x.BathPlacePositions)
                             .ThenInclude(p => p.BathPlace)
                             .ToListAsync();
@@ -83,7 +94,7 @@ namespace api.Controllers
                     return BadRequest("place is taken");
                 }
 
-                DateTime now = model.Date;
+                DateTime now = model.Date.ToUniversalTime().AddHours(3);
 
                 var order = new Order
                 {
