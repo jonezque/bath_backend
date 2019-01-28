@@ -1,4 +1,5 @@
-﻿using System;
+﻿using api.Persistent;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,5 +10,6 @@ namespace api.Models
     {
         public string From { get; set; }
         public string To { get; set; }
+        public RoomType Room { get; set; }
     }
 }

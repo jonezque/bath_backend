@@ -210,8 +210,7 @@ namespace api
                         Modified = DateTime.Now,
                         Price = i < 55 ? p1 : p2,
                         Room = RoomType.Men,
-                        Type = i < 55 ?
-                        PlaceType.Normal : PlaceType.Cab
+                        Type = i < 55 ? PlaceType.Normal : PlaceType.Cab
                     });
                 }
 
@@ -220,6 +219,29 @@ namespace api
                 var d1 = new Discount { Name = "Пенсионеры", Value = 300 };
                 var d2 = new Discount { Name = "Дети до 7 лет", Value = 0 };
                 await ctx.Discount.AddRangeAsync(d1, d2);
+
+                await ctx.SaveChangesAsync();
+            }
+
+            if (!ctx.BathPlaces.Where(x => x.Room == RoomType.Women).Any())
+            {
+                var p1 = await ctx.BathPlacePrices.FirstAsync(x => x.Room == RoomType.Women && x.Type == PlaceType.Normal);
+                var p2 = await ctx.BathPlacePrices.FirstAsync(x => x.Room == RoomType.Women && x.Type == PlaceType.Cab);
+
+                var list = new List<BathPlace>(64);
+                for (int i = 1; i < 65; i++)
+                {
+                    list.Add(new BathPlace
+                    {
+                        Name = i.ToString(),
+                        Modified = DateTime.Now,
+                        Price = i < 33 ? p1 : p2,
+                        Room = RoomType.Women,
+                        Type = i < 33 ? PlaceType.Normal : PlaceType.Cab
+                    });
+                }
+
+                await ctx.BathPlaces.AddRangeAsync(list);
 
                 await ctx.SaveChangesAsync();
             }

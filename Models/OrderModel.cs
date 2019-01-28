@@ -11,5 +11,6 @@ namespace api.Models
         public DateTime Date { get; set; }
 
         public PaymentType Type { get; set; }
+        public RoomType Room { get; set; }
     }
 }

@@ -75,9 +75,9 @@ namespace api.Controllers
 
         // GET: api/Orders
         [HttpGet("getbusyplaces")]
-        public async Task<ActionResult<IEnumerable<BathPlacePosition>>> GetBusyPlaces()
+        public async Task<ActionResult<IEnumerable<BathPlacePosition>>> GetBusyPlaces(RoomType room)
         {
-            return await GetBusyPositions().ToListAsync();
+            return await GetBusyPositions(room).ToListAsync();
         }
 
         // POST: api/Orders/createbathplaceorder
@@ -86,7 +86,7 @@ namespace api.Controllers
         {
             using (var transaction = context.Database.BeginTransaction())
             {
-                var list = await GetBusyPositions().Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
+                var list = await GetBusyPositions(model.Room).Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
 
                 if (list.Any())
                 {
@@ -113,7 +113,7 @@ namespace api.Controllers
                             Status = BathPlaceStatus.Busy,
                         }).ToList(),
                     Modified = now,
-                    Room = RoomType.Men,
+                    Room = model.Room,
                     Type = model.Type
                 };
 
@@ -122,7 +122,7 @@ namespace api.Controllers
                 await context.SaveChangesAsync();
                 transaction.Commit();
 
-                await NotrifyAll();
+                await NotrifyAll(model.Room == RoomType.Men ? "men" : "women");
 
                 return Ok(new { id = entry.Entity.Id });
             }
@@ -135,10 +135,10 @@ namespace api.Controllers
             using (var transaction = context.Database.BeginTransaction())
             {
                 var fromPlace = await context.BathPlaces
-                    .FirstOrDefaultAsync(x => x.Name.Equals(model.From));
+                    .FirstOrDefaultAsync(x => x.Name.Equals(model.From) && x.Room == model.Room);
                 var toPlace = await context.BathPlaces
                     .Include(x => x.Price)
-                    .FirstOrDefaultAsync(x => x.Name.Equals(model.To));
+                    .FirstOrDefaultAsync(x => x.Name.Equals(model.To) && x.Room == model.Room);
 
                 if (fromPlace.Type != toPlace.Type && fromPlace.Type == PlaceType.Cab)
                 {
@@ -175,7 +175,7 @@ namespace api.Controllers
                 context.Entry(from).State = EntityState.Modified;
                 await context.SaveChangesAsync();
                 transaction.Commit();
-                await NotrifyAll();
+                await NotrifyAll(model.Room == RoomType.Men ? "men" : "women");
 
                 return Ok();
             }
@@ -208,7 +208,7 @@ namespace api.Controllers
                 await context.SaveChangesAsync();
                 transaction.Commit();
 
-                await NotrifyAll();
+                await NotrifyAll(model.Room == RoomType.Men ? "men" : "women");
 
                 return Ok();
             }
@@ -220,7 +220,7 @@ namespace api.Controllers
         {
             using (var transaction = context.Database.BeginTransaction())
             {
-                var list = await GetBusyPositions()
+                var list = await GetBusyPositions(model.Room)
                     .Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id))
                     .ToListAsync();
 
@@ -248,7 +248,7 @@ namespace api.Controllers
                 await context.SaveChangesAsync();
                 transaction.Commit();
 
-                await NotrifyAll();
+                await NotrifyAll(model.Room == RoomType.Men ? "men" : "women");
 
                 return Ok();
             }
@@ -260,7 +260,7 @@ namespace api.Controllers
         {
             using (var transaction = context.Database.BeginTransaction())
             {
-                var list = await GetBusyPositions().Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
+                var list = await GetBusyPositions(model.Room).Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
 
                 if (list.Count != model.Places.Count())
                 {
@@ -276,7 +276,7 @@ namespace api.Controllers
                 await context.SaveChangesAsync();
                 transaction.Commit();
 
-                await NotrifyAll();
+                await NotrifyAll(model.Room == RoomType.Men ? "men" : "women");
 
                 return Ok(new { ids = list.Select(x => x.Id) });
             }
@@ -297,16 +297,16 @@ namespace api.Controllers
             return id.HasValue ? context.Discount.First(x => x.Id == id) : null;
         }
 
-        private IQueryable<BathPlacePosition> GetBusyPositions()
+        private IQueryable<BathPlacePosition> GetBusyPositions(RoomType room)
         {
             return context.BathPlacePositions
                .Include(x => x.BathPlace)
-               .Where(x => x.Status == BathPlaceStatus.Busy);
+               .Where(x => x.Status == BathPlaceStatus.Busy && x.BathPlace.Room == room);
         }
 
-        private async Task NotrifyAll()
+        private async Task NotrifyAll(string type)
         {
-            await hub.Clients.All.SendAsync("notify", "updated");
+            await hub.Clients.All.SendAsync("notify", type);
         }
     }
 }

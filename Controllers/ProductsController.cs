@@ -37,9 +37,9 @@ namespace api.Controllers
         }
 
         [HttpGet("getbathplaces")]
-        public async Task<ActionResult<IEnumerable<BathPlace>>> GetBathPlaces()
+        public async Task<ActionResult<IEnumerable<BathPlace>>> GetBathPlaces(RoomType room)
         {
-            return await context.BathPlaces.Include(x => x.Price).ToListAsync();
+            return await context.BathPlaces.Where(x => x.Room == room).Include(x => x.Price).ToListAsync();
         }
 
         // GET: api/Products/5
