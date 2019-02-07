@@ -25,7 +25,7 @@ using Swashbuckle.AspNetCore.Swagger;
 
 namespace api
 {
-    public class Startup
+    public class Startup //
     {
         public Startup(IConfiguration configuration)
         {
@@ -242,6 +242,16 @@ namespace api
                 }
 
                 await ctx.BathPlaces.AddRangeAsync(list);
+
+                await ctx.SaveChangesAsync();
+            }
+
+            if (!ctx.Products.Any())
+            {
+                var p1 = new Product { Name = "Тапочки", Price = 200 };
+                var p2 = new Product { Name = "Веник", Price = 300 };
+
+                await ctx.Products.AddRangeAsync(p1, p2);
 
                 await ctx.SaveChangesAsync();
             }

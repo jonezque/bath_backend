@@ -56,6 +56,8 @@ namespace api.Controllers
                                 x.Modified >= s && x.Modified <= e.AddDays(1))
                             .Include(x => x.BathPlacePositions)
                             .ThenInclude(p => p.BathPlace)
+                            .Include(x => x.ProductPositions)
+                            .ThenInclude(p => p.Product)
                             .ToListAsync();
         }
 
@@ -112,12 +114,20 @@ namespace api.Controllers
                             End = now.AddMinutes(x.Duration),
                             Status = BathPlaceStatus.Busy,
                         }).ToList(),
+                    ProductPositions = model.Products.Select((x) =>
+                        new ProductPosition
+                        {
+                            Count = x.Quantity,
+                            Product = context.Products.First(p => p.Id == x.Id),
+                            ProductPrice = context.Products.First(p => p.Id == x.Id).Price,
+                            TotalPrice = x.Quantity * context.Products.First(p => p.Id == x.Id).Price,
+                        }).ToList(),
                     Modified = now,
                     Room = model.Room,
                     Type = model.Type
                 };
 
-                order.TotalCost = order.BathPlacePositions.Sum(x => x.Cost);
+                order.TotalCost = order.BathPlacePositions.Sum(x => x.Cost) + order.ProductPositions.Sum(x => x.TotalPrice);
                 var entry = context.Orders.Add(order);
                 await context.SaveChangesAsync();
                 transaction.Commit();

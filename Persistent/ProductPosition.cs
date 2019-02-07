@@ -14,7 +14,12 @@ namespace api.Persistent
         public int Id { get; set; }
         public int Count { get; set; }
 
-        public Order Order { get; set; }
+        public int OrderId { get; set; }
         public Product Product { get; set; }
+
+        [Column(TypeName = "decimal(8,2)")]
+        public decimal ProductPrice { get; set; }
+        [Column(TypeName = "decimal(8,2)")]
+        public decimal TotalPrice { get; set; }
     }
 }

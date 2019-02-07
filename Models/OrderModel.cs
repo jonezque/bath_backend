@@ -8,6 +8,8 @@ namespace api.Models
     {
         public IEnumerable<BathPlaceModel> Places { get; set; }
 
+        public IEnumerable<ProductPositionModel> Products { get; set; }
+
         public DateTime Date { get; set; }
 
         public PaymentType Type { get; set; }
