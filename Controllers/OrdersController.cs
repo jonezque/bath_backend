@@ -86,7 +86,7 @@ namespace api.Controllers
         [HttpPost("createbathplaceorder")]
         public async Task<ActionResult> PostOrder(OrderModel model)
         {
-            using (var transaction = context.Database.BeginTransaction())
+            using (var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 var list = await GetBusyPositions(model.Room).Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
 
@@ -142,7 +142,7 @@ namespace api.Controllers
         [HttpPost("exchangeplaces")]
         public async Task<ActionResult> ExchangePlaces(ExchangePlaceModel model)
         {
-            using (var transaction = context.Database.BeginTransaction())
+            using (var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 var fromPlace = await context.BathPlaces
                     .FirstOrDefaultAsync(x => x.Name.Equals(model.From) && x.Room == model.Room);
@@ -196,7 +196,7 @@ namespace api.Controllers
         [HttpPost("cancelorders")]
         public async Task<ActionResult> CancelOrders(CancelOrderModel model)
         {
-            using (var transaction = context.Database.BeginTransaction())
+            using (var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 var orders = await context.Orders
                     .Include(x => x.ProductPositions)
@@ -269,7 +269,7 @@ namespace api.Controllers
         [HttpPost("addtime")]
         public async Task<ActionResult> AddTime(OrderModel model)
         {
-            using (var transaction = context.Database.BeginTransaction())
+            using (var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 var list = await GetBusyPositions(model.Room)
                     .Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id))
@@ -310,7 +310,7 @@ namespace api.Controllers
         [HttpPost("freeplaces")]
         public async Task<ActionResult> FreePlaces(OrderModel model)
         {
-            using (var transaction = context.Database.BeginTransaction())
+            using (var transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
             {
                 var list = await GetBusyPositions(model.Room).Where(x => model.Places.Select(m => m.Id).Contains(x.BathPlace.Id)).ToListAsync();
 
