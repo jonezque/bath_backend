@@ -176,9 +176,10 @@ namespace api.Controllers
 
                     var order = await context.Orders
                         .Include(x => x.BathPlacePositions)
+                        .Include(x => x.ProductPositions)
                         .FirstOrDefaultAsync(x => x.Id == from.OrderId);
 
-                    order.TotalCost = order.BathPlacePositions.Sum(x => x.Cost);
+                    order.TotalCost = order.BathPlacePositions.Sum(x => x.Cost) + order.ProductPositions.Sum(x => x.TotalPrice);
                     context.Entry(order).State = EntityState.Modified;
                 }
 
@@ -198,15 +199,54 @@ namespace api.Controllers
             using (var transaction = context.Database.BeginTransaction())
             {
                 var orders = await context.Orders
+                    .Include(x => x.ProductPositions)
                     .Include(x => x.BathPlacePositions)
                     .Where(x => model.OrderIds.Contains(x.Id))
                     .ToListAsync();
 
+                var newOrders = new List<Order>();
+
                 orders.ForEach(x => {
                     x.Canceled = true;
-                    x.Commentary = model.Reason;
+                    x.Commentary += model.Reason + $" (заказ №{x.Id})";
 
-                    foreach(var p in x.BathPlacePositions)
+                    var notFree = x.BathPlacePositions
+                        .Where(pos => !model.BathIds.Any(bathId => bathId == pos.BathPlaceId)).ToList();
+
+                    if (notFree.Count > 0 || x.ProductPositions.Count() > 0)
+                    {
+                        newOrders.Add(new Order
+                        {
+                            Commentary = $"новая копия заказа {x.Id} ",
+                            Room = x.Room,
+                            Type = x.Type,
+                            TotalCost = notFree.Sum(pos => pos.Cost) + x.ProductPositions.Sum(pos => pos.TotalPrice),
+                            ProductPositions = x.ProductPositions
+                                .Select(pos => new ProductPosition
+                                {
+                                    Count = pos.Count,
+                                    ProductId = pos.ProductId,
+                                    ProductPrice = pos.ProductPrice,
+                                    TotalPrice = pos.TotalPrice,
+                                }).ToList(),
+                            BathPlacePositions = notFree
+                                .Select(pos => new BathPlacePosition
+                                {
+                                    Price = pos.Price,
+                                    DiscountName = pos.DiscountName,
+                                    DiscountValue = pos.DiscountValue,
+                                    Status = pos.Status,
+                                    BathPlaceId = pos.BathPlaceId,
+                                    Begin = pos.Begin,
+                                    Duration = pos.Duration,
+                                    End = pos.End,
+                                    Cost = pos.Cost,
+                                }).ToList(),
+                            Modified = x.Modified
+                        });
+                    }
+
+                    foreach (var p in x.BathPlacePositions)
                     {
                         p.Status = BathPlaceStatus.Free;
                         context.Entry(p).State = EntityState.Modified;
@@ -215,6 +255,7 @@ namespace api.Controllers
                     context.Entry(x).State = EntityState.Modified;
                 });
 
+                await context.Orders.AddRangeAsync(newOrders);
                 await context.SaveChangesAsync();
                 transaction.Commit();
 
@@ -249,10 +290,11 @@ namespace api.Controllers
                 var orders = await context.Orders
                     .Where(x => list.Select(p => p.OrderId).Contains(x.Id))
                     .Include(x => x.BathPlacePositions)
+                    .Include(x => x.ProductPositions)
                     .ToListAsync();
 
                 orders.ForEach(x => {
-                    x.TotalCost = x.BathPlacePositions.Sum(p => p.Cost);
+                    x.TotalCost = x.BathPlacePositions.Sum(p => p.Cost) + x.ProductPositions.Sum(p => p.TotalPrice);
                     context.Entry(x).State = EntityState.Modified;
                 });
                 await context.SaveChangesAsync();

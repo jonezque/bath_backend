@@ -20,6 +20,7 @@ namespace api.Persistent
         public string DiscountName { get; set; }
 
         public BathPlace BathPlace { get; set; }
+        public int BathPlaceId { get; set; }
 
         public int OrderId { get; set; }
 

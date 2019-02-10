@@ -12,5 +12,6 @@ namespace api.Models
         public IEnumerable<int> OrderIds { get; set; }
         public string Reason { get; set; }
         public RoomType Room { get; set; }
+        public IEnumerable<int> BathIds { get; set; }
     }
 }
