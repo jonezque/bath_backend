@@ -58,14 +58,10 @@ namespace api.Controllers
         {
             using (var transaction = context.Database.BeginTransaction())
             {
-                var ids = model.Prices.Select(m => m.Id);
-                var prices = context.BathPlacePrices.Where(x => ids.Contains(x.Id)).ToList();
+                var price = context.BathPlacePrices.FirstOrDefault(x => x.Id == model.Id);
 
-                foreach (var p in prices)
-                {
-                    p.Price = model.Prices.First(x => x.Id == p.Id).Price;
-                    context.Entry(p).State = EntityState.Modified;
-                }
+                price.Price = model.Price;
+                context.Entry(price).State = EntityState.Modified;
 
                 try
                 {

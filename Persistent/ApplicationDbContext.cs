@@ -22,5 +22,8 @@ namespace api.Persistent
         public DbSet<ProductPosition> ProductPositions { get; set; }
         public DbSet<BathPlacePosition> BathPlacePositions { get; set; }
         public DbSet<Discount> Discount { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<Master> Masters { get; set; }
+        public DbSet<ServicePosition> ServicePositions { get; set; }
     }
 }

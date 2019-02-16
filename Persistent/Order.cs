@@ -17,6 +17,7 @@ namespace api.Persistent
         public ICollection<ProductPosition> ProductPositions { get; set; }
 
         public ICollection<BathPlacePosition> BathPlacePositions { get; set; }
+        public ICollection<ServicePosition> ServicePositions { get; set; }
 
         public DateTime Modified { get; set; }
 

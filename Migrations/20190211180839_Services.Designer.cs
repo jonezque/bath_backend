@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Persistent;
 
 namespace WebApplication2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190211180839_Services")]
+    partial class Services
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,8 +260,6 @@ namespace WebApplication2.Migrations
 
                     b.HasIndex("MasterId");
 
-                    b.HasIndex("OrderId");
-
                     b.HasIndex("ServiceId");
 
                     b.ToTable("ServicePositions");
@@ -435,11 +435,6 @@ namespace WebApplication2.Migrations
                     b.HasOne("api.Persistent.Master", "Master")
                         .WithMany()
                         .HasForeignKey("MasterId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("api.Persistent.Order")
-                        .WithMany("ServicePositions")
-                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("api.Persistent.Service", "Service")
