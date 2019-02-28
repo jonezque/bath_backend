@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Persistent;
+using Microsoft.AspNetCore.SignalR;
+using api.Infrastructure;
 
 namespace api.Controllers
 {
@@ -15,9 +17,12 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public DiscountsController(ApplicationDbContext context)
+        private readonly IHubContext<NotifyHub> hub;
+
+        public DiscountsController(ApplicationDbContext context, IHubContext<NotifyHub> hub)
         {
             _context = context;
+            this.hub = hub;
         }
 
         // GET: api/Discounts
@@ -65,6 +70,7 @@ namespace api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await NotrifyAll();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -92,6 +98,7 @@ namespace api.Controllers
 
             _context.Discount.Add(discount);
             await _context.SaveChangesAsync();
+            await NotrifyAll();
 
             return CreatedAtAction("GetDiscount", new { id = discount.Id }, discount);
         }
@@ -113,6 +120,7 @@ namespace api.Controllers
 
             _context.Discount.Remove(discount);
             await _context.SaveChangesAsync();
+            await NotrifyAll();
 
             return Ok(discount);
         }
@@ -120,6 +128,11 @@ namespace api.Controllers
         private bool DiscountExists(int id)
         {
             return _context.Discount.Any(e => e.Id == id);
+        }
+
+        private async Task NotrifyAll()
+        {
+            await hub.Clients.All.SendAsync("notify", "update-discount");
         }
     }
 }

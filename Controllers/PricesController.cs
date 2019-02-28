@@ -33,25 +33,6 @@ namespace api.Controllers
             return context.BathPlacePrices;
         }
 
-        // GET: api/Prices/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBathPlacePrice([FromRoute] int id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var bathPlacePrice = await context.BathPlacePrices.FindAsync(id);
-
-            if (bathPlacePrice == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(bathPlacePrice);
-        }
-
         // PUT: api/Prices/5
         [HttpPut]
         public async Task<IActionResult> PutBathPlacePrice(PriceModel model)
@@ -85,7 +66,7 @@ namespace api.Controllers
 
         private async Task NotrifyAll()
         {
-            await hub.Clients.All.SendAsync("notify", "updatePrice");
+            await hub.Clients.All.SendAsync("notify", "update-price");
         }
     }
 }

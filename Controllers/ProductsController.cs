@@ -3,6 +3,7 @@ using api.Persistent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -22,11 +23,14 @@ namespace api.Controllers
 
         private readonly RoleManager<Role> roleManager;
 
-        public ProductsController(ApplicationDbContext context, UserManager<User> userManager, RoleManager<Role> roleManager)
+        private readonly IHubContext<NotifyHub> hub;
+
+        public ProductsController(ApplicationDbContext context, UserManager<User> userManager, RoleManager<Role> roleManager, IHubContext<NotifyHub> hub)
         {
             this.context = context;
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.hub = hub;
         }
 
         // GET: api/Products
@@ -75,6 +79,7 @@ namespace api.Controllers
             try
             {
                 await context.SaveChangesAsync();
+                await NotrifyAll();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -101,6 +106,7 @@ namespace api.Controllers
             product.Modified = date;
             context.Products.Add(product);
             await context.SaveChangesAsync();
+            await NotrifyAll();
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
@@ -117,6 +123,7 @@ namespace api.Controllers
 
             context.Products.Remove(product);
             await context.SaveChangesAsync();
+            await NotrifyAll();
 
             return product;
         }
@@ -124,6 +131,11 @@ namespace api.Controllers
         private bool ProductExists(int id)
         {
             return context.Products.Any(e => e.Id == id);
+        }
+
+        private async Task NotrifyAll()
+        {
+            await hub.Clients.All.SendAsync("notify", "update-product");
         }
     }
 }
