@@ -83,7 +83,7 @@ namespace api.Controllers
 
             foreach (var role in await signInManager.UserManager.GetRolesAsync(user))
             {
-                claims.Add(new Claim(ClaimsIdentity.DefaultRoleClaimType, role));
+                claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
             return new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);

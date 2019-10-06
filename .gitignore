@@ -32,3 +32,5 @@ storage.ide-shm
 storage.ide-wal
 applicationhost.config
 slnx.sqlite
+obj
+bin

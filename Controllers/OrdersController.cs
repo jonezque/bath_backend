@@ -46,12 +46,9 @@ namespace api.Controllers
             var s = filter.Start.ToUniversalTime().AddHours(3).Date;
             var e = filter.End.ToUniversalTime().AddHours(3).Date;
             return await context.Orders
-                            .Where(x => filter.Status == StatusFilter.Both ?
-                                true : filter.Status == StatusFilter.Cancel ? x.Canceled : !x.Canceled)
-                            .Where(x => filter.Payment == PaymentFilter.Both ?
-                                true : filter.Payment == PaymentFilter.Card ? x.Type == PaymentType.Card : x.Type == PaymentType.Cash)
-                            .Where(x => filter.Room == RoomFilter.Both ?
-                                true : filter.Room == RoomFilter.Male ? x.Room == RoomType.Men : x.Room == RoomType.Women)
+                            .Where(x => filter.Status == StatusFilter.Both || (filter.Status == StatusFilter.Cancel ? x.Canceled : !x.Canceled))
+                            .Where(x => filter.Payment == PaymentFilter.Both || (filter.Payment == PaymentFilter.Card ? x.Type == PaymentType.Card : x.Type == PaymentType.Cash))
+                            .Where(x => filter.Room == RoomFilter.Both || (filter.Room == RoomFilter.Male ? x.Room == RoomType.Men : x.Room == RoomType.Women))
                             .Where(x => filter.Date == DateFilter.Day ? x.Modified > s && x.Modified < s.AddDays(1) :
                                 x.Modified >= s && x.Modified <= e.AddDays(1))
                             .Include(x => x.BathPlacePositions)
